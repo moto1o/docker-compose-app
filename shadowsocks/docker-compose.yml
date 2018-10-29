@@ -1,0 +1,27 @@
+version: '2'
+services:
+  server:
+    image: mritd/shadowsocks:3.2.0
+    ports:
+      - "${SERVER_TCP_PORT}:${SERVER_TCP_PORT}"
+      - "${SERVER_UDP_PORT}:${SERVER_UDP_PORT}/udp"
+    restart: always
+    environment:
+      - SS_MODULE=ss-server
+      - SS_CONFIG=-s 0.0.0.0 -p ${SERVER_TCP_PORT} -m ${SERVER_METHOD} -k ${SERVER_PASSWORD} --fast-open
+      - KCP_MODULE=kcpserver
+      - KCP_CONFIG=-t 127.0.0.1:${SERVER_TCP_PORT} -l :${SERVER_UDP_PORT} -mode fast2
+      - KCP_FLAG=true
+
+  client:
+    image: mritd/shadowsocks:3.2.0
+    ports:
+      - "${CLIENT_LOCAL_SS_PORT}:${CLIENT_LOCAL_SS_PORT}"
+      - "${CLIENT_LOCAL_UDP_PORT}:${CLIENT_LOCAL_UDP_PORT}/udp"
+    restart: always
+    environment:
+      - SS_MODULE=ss-local
+      - SS_CONFIG=-s 127.0.0.1 -p ${CLIENT_LOCAL_UDP_PORT} -b 0.0.0.0 -l ${CLIENT_LOCAL_SS_PORT} -m ${CLIENT_CONNET_METHOD} -k ${CLIENT_CONNET_PASSWORD} --fast-open
+      - KCP_MODULE=kcpclient
+      - KCP_CONFIG=-r ${CLIENT_CONNET_UDP_IP}:${CLIENT_CONNET_UDP_PORT} -l :${CLIENT_LOCAL_UDP_PORT} -mode fast2
+      - KCP_FLAG=true
