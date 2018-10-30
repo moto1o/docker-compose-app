@@ -1,0 +1,39 @@
+version: '2'
+
+networks:
+  web_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 10.0.0.0/16
+        ip_range: 10.0.1.0/24
+        gateway: 10.0.1.1
+
+
+services:
+
+### MySQL ################################################
+  mysql:
+    build: ./mysql5.7
+    container_name: mysql
+    restart: always
+    mem_limit: 2048m
+    environment:
+        - MYSQL_DATABASE=${MYSQL_DATABASE}
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        - MYSQL_ROOT_HOST=127.0.0.1
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        - TZ=${TIMEZONE}
+    networks:
+      web_net:
+        ipv4_address: 10.0.1.10
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - "../data/mysql5.7/:/var/lib/mysql/"
+      - "./mysql5.7/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/"
+      - "./mysql5.7/my.cnf:/etc/mysql/conf.d/my.cnf"
+      - "../logs/:/logs/"
+
